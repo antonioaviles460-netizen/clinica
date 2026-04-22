@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Panel | Alianza Médica</title>
+
+    <!-- Google Fonts: Syne (display) + DM Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* ── Design Tokens ─────────────────────────────────────── */
+        :root {
+            --brand-900: #021d6e;
+            --brand-700: #003580;
+            --brand-500: #0057d9;
+            --brand-300: #5592ff;
+            --accent:    #00d4a1;
+            --danger:    #ff4d6d;
+            --warn:      #ffbe0b;
+            --surface:   #f4f6fb;
+            --card:      #ffffff;
+            --text-1:    #0d1b3e;
+            --text-2:    #4a5568;
+            --text-3:    #8898aa;
+            --radius:    14px;
+            --sidebar-w: 270px;
+            --transition: 0.28s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* ── Base ───────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--surface);
+            color: var(--text-1);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, .display-font {
+            font-family: 'Syne', sans-serif;
+        }
+
+        /* ── LOGIN ──────────────────────────────────────────────── */
+        #login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-500) 60%, #1a9ecf 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #login-screen::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,.07) 0%, transparent 70%);
+            top: -100px; right: -150px;
+            pointer-events: none;
+        }
+
+        #login-screen::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,212,161,.12) 0%, transparent 70%);
+            bottom: -80px; left: -80px;
+            pointer-events: none;
+        }
+
+        .login-card {
+            background: rgba(255,255,255,0.97);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            width: min(420px, 92vw);
+            box-shadow: 0 32px 80px rgba(2,29,110,.35);
+            position: relative;
+            z-index: 1;
+            animation: loginDrop .5s cubic-bezier(.4,0,.2,1) both;
+        }
+
+        @keyframes loginDrop {
+            from { opacity: 0; transform: translateY(-24px) scale(.97); }
+            to   { opacity: 1; transform: translateY(0)     scale(1);   }
+        }
+
+        .login-logo {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, var(--brand-500), var(--accent));
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-size: 1.5rem;
+        }
+
+        .login-card h3 {
+            text-align: center;
+            font-size: 1.6rem;
+            color: var(--brand-900);
+            margin-bottom: 0.35rem;
+        }
+
+        .login-card .subtitle {
+            text-align: center;
+            font-size: .875rem;
+            color: var(--text-3);
+            margin-bottom: 2rem;
+        }
+
+        .form-floating .form-control {
+            border-radius: 10px;
+            border-color: #dde3ef;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .95rem;
+        }
+
+        .form-floating .form-control:focus {
+            border-color: var(--brand-500);
+            box-shadow: 0 0 0 3px rgba(0,87,217,.15);
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--brand-500), var(--brand-900));
+            border: none;
+            border-radius: 10px;
+            padding: .8rem;
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            letter-spacing: .04em;
+            transition: box-shadow var(--transition), transform var(--transition);
+        }
+
+        .btn-login:hover {
+            box-shadow: 0 8px 28px rgba(0,87,217,.45);
+            transform: translateY(-1px);
+        }
+
+        #login-error {
+            display: none;
+            font-size: .85rem;
+        }
+
+        /* ── APP SHELL ──────────────────────────────────────────── */
+        #app {
+            display: none;
+            flex-direction: row;
+            min-height: 100vh;
+        }
+
+        #app.visible {
+            display: flex;
+            animation: fadeIn .3s ease both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* ── SIDEBAR ────────────────────────────────────────────── */
+        #sidebar {
+            width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            background: linear-gradient(170deg, var(--brand-900) 0%, var(--brand-700) 60%, #00416a 100%);
+            color: #fff;
+            padding: 1.75rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition), box-shadow var(--transition);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-brand-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--brand-300), var(--accent));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            line-height: 1.2;
+        }
+
+        .sidebar-brand-text small {
+            display: block;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .7rem;
+            opacity: .55;
+            font-weight: 400;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-divider {
+            border: none;
+            height: 1px;
+            background: rgba(255,255,255,.1);
+            margin: .75rem 0;
+        }
+
+        .nav-label {
+            font-size: .65rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            opacity: .45;
+            padding: .5rem .5rem .3rem;
+            font-weight: 600;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,.75);
+            border-radius: 10px;
+            padding: .65rem .9rem;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .9rem;
+            font-weight: 500;
+            transition: background var(--transition), color var(--transition);
+            cursor: pointer;
+        }
+
+        .nav-btn i {
+            font-size: 1rem;
+            opacity: .8;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,.1);
+            color: #fff;
+        }
+
+        .nav-btn.active {
+            background: rgba(255,255,255,.15);
+            color: #fff;
+            box-shadow: inset 3px 0 0 var(--accent);
+        }
+
+        .sidebar-logout {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+
+        .btn-logout {
+            background: rgba(255,77,109,.15);
+            border: 1px solid rgba(255,77,109,.3);
+            color: #ff9aad;
+            border-radius: 10px;
+            padding: .65rem .9rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .9rem;
+            font-weight: 500;
+            transition: background var(--transition), color var(--transition);
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,77,109,.3);
+            color: #fff;
+        }
+
+        /* ── TOPBAR (mobile) ────────────────────────────────────── */
+        #topbar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: .85rem 1.25rem;
+            background: var(--brand-900);
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            box-shadow: 0 2px 12px rgba(2,29,110,.25);
+        }
+
+        #topbar .topbar-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+        }
+
+        #mobile-menu-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: .25rem .5rem;
+            line-height: 1;
+        }
+
+        /* ── MAIN CONTENT ───────────────────────────────────────── */
+        #main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem 2.25rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        #section-title {
+            font-size: 1.7rem;
+            color: var(--brand-900);
+        }
+
+        #user-badge {
+            background: linear-gradient(135deg, var(--brand-500), var(--brand-900));
+            color: #fff;
+            border-radius: 20px;
+            padding: .45rem 1.1rem;
+            font-size: .82rem;
+            font-weight: 600;
+            letter-spacing: .03em;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        /* ── METRIC CARDS ───────────────────────────────────────── */
+        #ceo-metrics { margin-bottom: 2rem; }
+
+        .metric-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 1.4rem 1.5rem;
+            box-shadow: 0 2px 16px rgba(2,29,110,.07);
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(2,29,110,.13);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+        }
+
+        .metric-card.green::before  { background: var(--accent); }
+        .metric-card.blue::before   { background: var(--brand-300); }
+        .metric-card.yellow::before { background: var(--warn); }
+        .metric-card.red::before    { background: var(--danger); }
+
+        .metric-label {
+            font-size: .78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-3);
+            margin-bottom: .5rem;
+        }
+
+        .metric-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.9rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .metric-card.green  .metric-value { color: #00b389; }
+        .metric-card.blue   .metric-value { color: var(--brand-500); }
+        .metric-card.yellow .metric-value { color: #d4920a; }
+        .metric-card.red    .metric-value { color: var(--danger); }
+
+        .metric-icon {
+            position: absolute;
+            right: 1.25rem; top: 50%;
+            transform: translateY(-50%);
+            font-size: 2.4rem;
+            opacity: .08;
+        }
+
+        /* ── FILTER BAR ─────────────────────────────────────────── */
+        .filter-bar {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 1.1rem 1.25rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 12px rgba(2,29,110,.06);
+        }
+
+        .filter-bar .form-control,
+        .filter-bar .form-select {
+            border-radius: 9px;
+            border-color: #dde3ef;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .9rem;
+        }
+
+        .filter-bar .form-control:focus,
+        .filter-bar .form-select:focus {
+            border-color: var(--brand-500);
+            box-shadow: 0 0 0 3px rgba(0,87,217,.12);
+        }
+
+        .btn-filter {
+            background: var(--brand-500);
+            border: none;
+            border-radius: 9px;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: .9rem;
+            padding: .5rem 1.25rem;
+            transition: background var(--transition), box-shadow var(--transition);
+        }
+
+        .btn-filter:hover {
+            background: var(--brand-700);
+            box-shadow: 0 4px 16px rgba(0,87,217,.3);
+        }
+
+        /* ── DATA CARD / TABLE ──────────────────────────────────── */
+        .data-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: 0 2px 16px rgba(2,29,110,.07);
+        }
+
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: .75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .data-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--brand-900);
+        }
+
+        .btn-export {
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .83rem;
+            font-weight: 600;
+            padding: .4rem .9rem;
+            transition: all var(--transition);
+        }
+
+        .btn-export-csv {
+            border: 1.5px solid var(--brand-500);
+            color: var(--brand-500);
+            background: transparent;
+        }
+
+        .btn-export-csv:hover {
+            background: var(--brand-500);
+            color: #fff;
+        }
+
+        .btn-export-pdf {
+            border: 1.5px solid #00a86b;
+            color: #00a86b;
+            background: transparent;
+        }
+
+        .btn-export-pdf:hover {
+            background: #00a86b;
+            color: #fff;
+        }
+
+        .table {
+            font-size: .875rem;
+        }
+
+        .table thead th {
+            background: var(--brand-900);
+            color: rgba(255,255,255,.85);
+            font-family: 'Syne', sans-serif;
+            font-size: .78rem;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            border: none;
+            padding: .85rem 1rem;
+        }
+
+        .table thead th:first-child { border-radius: 8px 0 0 8px; }
+        .table thead th:last-child  { border-radius: 0 8px 8px 0; }
+
+        .table tbody td {
+            padding: .85rem 1rem;
+            border-color: #eef0f7;
+            vertical-align: middle;
+            color: var(--text-1);
+        }
+
+        .table tbody tr:hover td {
+            background: #f0f4ff;
+        }
+
+        /* ── TOAST NOTIFICATIONS ────────────────────────────────── */
+        #notificaciones-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 1055;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            width: 320px;
+        }
+
+        .toast-custom {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            box-shadow: 0 8px 32px rgba(2,29,110,.18);
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            animation: toastIn .3s cubic-bezier(.4,0,.2,1) both;
+            font-size: .875rem;
+            border-left: 4px solid var(--brand-500);
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(24px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── MODAL ──────────────────────────────────────────────── */
+        .modal-content {
+            border-radius: 18px;
+            border: none;
+            box-shadow: 0 24px 64px rgba(2,29,110,.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--brand-900), var(--brand-700));
+            color: #fff;
+            border-radius: 18px 18px 0 0;
+            padding: 1.25rem 1.5rem;
+            border: none;
+        }
+
+        .modal-header .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #eef0f7; }
+
+        .modal-body .form-control {
+            border-radius: 9px;
+            border-color: #dde3ef;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-modal-primary {
+            background: linear-gradient(135deg, var(--brand-500), var(--brand-900));
+            border: none;
+            border-radius: 9px;
+            font-family: 'Syne', sans-serif;
+            letter-spacing: .04em;
+            padding: .55rem 1.4rem;
+            transition: box-shadow var(--transition);
+        }
+
+        .btn-modal-primary:hover {
+            box-shadow: 0 6px 20px rgba(0,87,217,.4);
+        }
+
+        /* ── OVERLAY (mobile sidebar) ───────────────────────────── */
+        #sidebar-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(2,29,110,.45);
+            z-index: 95;
+            backdrop-filter: blur(2px);
+        }
+
+        #sidebar-overlay.active { display: block; }
+
+        /* ── RESPONSIVE ─────────────────────────────────────────── */
+        @media (max-width: 991.98px) {
+            #sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                box-shadow: 8px 0 40px rgba(2,29,110,.3);
+            }
+
+            #sidebar.open { transform: translateX(0); }
+
+            #topbar { display: flex; }
+
+            main { padding: 1.5rem 1.1rem; }
+
+            #section-title { font-size: 1.35rem; }
+        }
+
+        @media (min-width: 992px) {
+            #topbar { display: none !important; }
+        }
+
+        /* ── UTILITY ────────────────────────────────────────────── */
+        .d-none   { display: none !important; }
+        .visually-hidden {
+            position: absolute; width: 1px; height: 1px;
+            overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+        }
+
+        /* Scrollbar */
+        #sidebar::-webkit-scrollbar { width: 4px; }
+        #sidebar::-webkit-scrollbar-track { background: transparent; }
+        #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     PANTALLA DE LOGIN
+═══════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+    <div class="login-card">
+        <div class="login-logo" aria-hidden="true">🏥</div>
+        <h3>Alianza Médica</h3>
+        <p class="subtitle">Panel de Control — Acceso Autorizado</p>
+
+        <form id="login-form" novalidate>
+            <div class="form-floating mb-3">
+                <input
+                    type="text"
+                    id="user"
+                    class="form-control"
+                    placeholder="Usuario"
+                    autocomplete="username"
+                    required
+                    aria-label="Usuario"
+                >
+                <label for="user"><i class="bi bi-person me-1"></i>Usuario</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input
+                    type="password"
+                    id="pass"
+                    class="form-control"
+                    placeholder="Contraseña"
+                    autocomplete="current-password"
+                    required
+                    aria-label="Contraseña"
+                >
+                <label for="pass"><i class="bi bi-lock me-1"></i>Contraseña</label>
+            </div>
+
+            <div id="login-error" class="alert alert-danger py-2 mb-3" role="alert" aria-live="assertive"></div>
+
+            <button type="submit" class="btn btn-login btn-primary w-100 text-white fw-bold">
+                <i class="bi bi-box-arrow-in-right me-2"></i>INGRESAR
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     APLICACIÓN PRINCIPAL
+═══════════════════════════════════════════════════════════ -->
+<div id="app">
+
+    <!-- Sidebar overlay (mobile) -->
+    <div id="sidebar-overlay" aria-hidden="true"></div>
+
+    <!-- ── SIDEBAR ──────────────────────────────────────── -->
+    <nav id="sidebar" aria-label="Menú principal">
+
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon" aria-hidden="true">🏥</div>
+            <div class="sidebar-brand-text">
+                CEO CONTROL
+                <small>Alianza Médica</small>
+            </div>
+            <!-- Cerrar en móvil -->
+            <button
+                id="closeSidebarBtn"
+                class="ms-auto"
+                style="background:transparent;border:none;color:rgba(255,255,255,.6);font-size:1.2rem;cursor:pointer;padding:.25rem;"
+                type="button"
+                aria-label="Cerrar menú"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <!-- Nav items -->
+        <div class="d-flex flex-column gap-1">
+            <p class="nav-label">General</p>
+
+            <button class="nav-btn active" data-section="ops" type="button">
+                <i class="bi bi-clipboard-check"></i> Operación
+            </button>
+            <button class="nav-btn" data-section="pac" type="button">
+                <i class="bi bi-people"></i> Pacientes
+            </button>
+
+            <p class="nav-label mt-2" id="lbl-admin" style="display:none">Administración</p>
+
+            <button id="btn-finanzas" class="nav-btn d-none" data-section="fin" type="button">
+                <i class="bi bi-cash-stack"></i> Finanzas
+            </button>
+            <button id="btn-usuarios" class="nav-btn d-none" data-section="usr" type="button">
+                <i class="bi bi-person-badge"></i> Usuarios
+            </button>
+            <button id="btn-reportes" class="nav-btn d-none" data-section="rep" type="button">
+                <i class="bi bi-bar-chart-line"></i> Reportes
+            </button>
+            <button id="btn-logs" class="nav-btn d-none" data-section="log" type="button">
+                <i class="bi bi-journal-text"></i> Auditoría
+            </button>
+            <button id="btn-config" class="nav-btn d-none" data-section="cfg" type="button">
+                <i class="bi bi-gear"></i> Configuración
+            </button>
+        </div>
+
+        <!-- Logout -->
+        <div class="sidebar-logout">
+            <hr class="sidebar-divider">
+            <button class="btn-logout" type="button" onclick="cerrarSesion()" aria-label="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+            </button>
+        </div>
+    </nav>
+
+    <!-- ── MAIN WRAPPER ──────────────────────────────────── -->
+    <div id="main-wrapper">
+
+        <!-- Topbar (móvil) -->
+        <header id="topbar" role="banner">
+            <button id="mobile-menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <span class="topbar-title">CEO Control</span>
+            <span id="user-badge-mobile" style="font-size:.75rem;opacity:.8;"></span>
+        </header>
+
+        <!-- Contenido -->
+        <main id="main-content" role="main">
+
+            <!-- Page header -->
+            <div class="page-header">
+                <h2 id="section-title">Gestión Av. 9</h2>
+                <span id="user-badge" role="status" aria-live="polite">
+                    <i class="bi bi-person-circle"></i>
+                </span>
+            </div>
+
+            <!-- MÉTRICAS CEO -->
+            <div id="ceo-metrics" class="row g-3 d-none">
+                <div class="col-6 col-lg-3">
+                    <div class="metric-card green">
+                        <div class="metric-label">Ingresos Brutos</div>
+                        <div id="m-ingresos" class="metric-value">$0.00</div>
+                        <i class="bi bi-cash metric-icon" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="metric-card blue">
+                        <div class="metric-label">Citas Completadas</div>
+                        <div id="m-citas" class="metric-value">0</div>
+                        <i class="bi bi-calendar-check metric-icon" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="metric-card yellow">
+                        <div class="metric-label">Pacientes Activos</div>
+                        <div id="m-pacientes" class="metric-value">0</div>
+                        <i class="bi bi-people metric-icon" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="metric-card red">
+                        <div class="metric-label">Pendientes</div>
+                        <div id="m-pendientes" class="metric-value">0</div>
+                        <i class="bi bi-hourglass-split metric-icon" aria-hidden="true"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTROS -->
+            <div class="filter-bar mt-4">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 border-color-light">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input
+                                type="search"
+                                id="searchInput"
+                                class="form-control border-start-0"
+                                placeholder="Buscar paciente, cita o resultado…"
+                                aria-label="Buscar registros"
+                            >
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filterStatus" class="form-select" aria-label="Filtrar por estado">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="completado">Completado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn-filter w-100" id="filterBtn" type="button">
+                            <i class="bi bi-funnel me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE DATOS -->
+            <div class="data-card mt-3">
+                <div class="data-card-header">
+                    <h5 class="data-card-title">Datos de Operación</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn-export btn-export-csv" id="exportCsvBtn" type="button">
+                            <i class="bi bi-filetype-csv me-1"></i>CSV
+                        </button>
+                        <button class="btn-export btn-export-pdf" id="exportPdfBtn" type="button">
+                            <i class="bi bi-filetype-pdf me-1"></i>PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover" aria-label="Datos de operación" aria-live="polite">
+                        <thead id="t-head"></thead>
+                        <tbody id="t-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div><!-- /main-wrapper -->
+</div><!-- /app -->
+
+
+<!-- Toast container (accesible) -->
+<div
+    id="notificaciones-container"
+    role="region"
+    aria-label="Notificaciones"
+    aria-live="polite"
+></div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     MODAL — SUBIR RESULTADO
+═══════════════════════════════════════════════════════════ -->
+<div
+    class="modal fade"
+    id="modalSubir"
+    tabindex="-1"
+    aria-labelledby="modalSubirLabel"
+    aria-hidden="true"
+    role="dialog"
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalSubirLabel">
+                    <i class="bi bi-upload me-2"></i>Vincular Resultado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">
+                    Paciente: <strong id="modal-paciente">—</strong>
+                </p>
+                <div class="mb-3">
+                    <label for="fileInput" class="form-label fw-semibold">Seleccionar archivo PDF</label>
+                    <input
+                        type="file"
+                        id="fileInput"
+                        class="form-control"
+                        accept="application/pdf"
+                        aria-describedby="fileHelp"
+                    >
+                    <div id="fileHelp" class="form-text mt-1">
+                        <i class="bi bi-info-circle me-1"></i>Solo archivos PDF. Máx. 10 MB.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-modal-primary text-white" id="confirmarSubidaBtn">
+                    <i class="bi bi-cloud-upload me-1"></i>SUBIR Y NOTIFICAR
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- UI Controller (no interfiere con script.js externo) -->
+<script>
+(function () {
+    "use strict";
+
+    /* ── Referencias DOM ───────────────────────────────── */
+    const sidebar        = document.getElementById("sidebar");
+    const overlay        = document.getElementById("sidebar-overlay");
+    const mobileMenuBtn  = document.getElementById("mobile-menu-btn");
+    const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+    const loginForm      = document.getElementById("login-form");
+    const loginError     = document.getElementById("login-error");
+    const searchInput    = document.getElementById("searchInput");
+    const filterBtn      = document.getElementById("filterBtn");
+    const exportCsvBtn   = document.getElementById("exportCsvBtn");
+    const exportPdfBtn   = document.getElementById("exportPdfBtn");
+    const confirmarSubidaBtn = document.getElementById("confirmarSubidaBtn");
+    const allNavBtns     = sidebar.querySelectorAll(".nav-btn[data-section]");
+
+    /* ── Sidebar toggle ────────────────────────────────── */
+    function openSidebar() {
+        sidebar.classList.add("open");
+        overlay.classList.add("active");
+        overlay.setAttribute("aria-hidden", "false");
+        mobileMenuBtn?.setAttribute("aria-expanded", "true");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove("open");
+        overlay.classList.remove("active");
+        overlay.setAttribute("aria-hidden", "true");
+        mobileMenuBtn?.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+    }
+
+    mobileMenuBtn?.addEventListener("click", openSidebar);
+    closeSidebarBtn?.addEventListener("click", closeSidebar);
+    overlay?.addEventListener("click", closeSidebar);
+
+    /* Cerrar con Escape */
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && sidebar.classList.contains("open")) closeSidebar();
+    });
+
+    /* Resetear sidebar en resize */
+    const mq = window.matchMedia("(min-width: 992px)");
+    mq.addEventListener("change", (e) => {
+        if (e.matches) {
+            closeSidebar();
+            document.body.style.overflow = "";
+        }
+    });
+
+    /* ── Navegación por secciones ──────────────────────── */
+    allNavBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const section = btn.dataset.section;
+
+            /* Marcar activo */
+            allNavBtns.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            /* Delegar a script.js externo */
+            if (typeof setSeccion === "function") {
+                setSeccion(section);
+            } else {
+                console.warn("setSeccion() no está definida. Asegúrate de cargar script.js.");
+            }
+
+            /* Cerrar sidebar en móvil */
+            if (window.innerWidth < 992) closeSidebar();
+        });
+    });
+
+    /* ── Login ─────────────────────────────────────────── */
+    loginForm?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        loginError.style.display = "none";
+
+        if (typeof autenticar === "function") {
+            autenticar();
+        } else {
+            loginError.textContent = "Error: función autenticar() no encontrada en script.js.";
+            loginError.style.display = "block";
+            console.error("autenticar() no está definida en script.js.");
+        }
+    });
+
+    /* Helper global: mostrar error de login desde script.js */
+    window.mostrarErrorLogin = function (msg) {
+        loginError.textContent = msg || "Credenciales incorrectas.";
+        loginError.style.display = "block";
+    };
+
+    /* ── Búsqueda con Enter ────────────────────────────── */
+    searchInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            if (typeof aplicarFiltros === "function") aplicarFiltros();
+        }
+    });
+
+    /* ── Delegación de botones a funciones externas ────── */
+    filterBtn?.addEventListener("click", () => {
+        if (typeof aplicarFiltros === "function") aplicarFiltros();
+    });
+
+    exportCsvBtn?.addEventListener("click", () => {
+        if (typeof exportarCSV === "function") exportarCSV();
+    });
+
+    exportPdfBtn?.addEventListener("click", () => {
+        if (typeof exportarPDF === "function") exportarPDF();
+    });
+
+    confirmarSubidaBtn?.addEventListener("click", () => {
+        if (typeof confirmarSubida === "function") confirmarSubida();
+    });
+
+    /* ── Toast helper (disponible para script.js) ──────── */
+    window.mostrarToast = function (mensaje, tipo = "info") {
+        const iconMap = {
+            success: "bi-check-circle-fill",
+            error:   "bi-x-circle-fill",
+            warning: "bi-exclamation-triangle-fill",
+            info:    "bi-info-circle-fill"
+        };
+        const colorMap = {
+            success: "#00b389",
+            error:   "#ff4d6d",
+            warning: "#d4920a",
+            info:    "#0057d9"
+        };
+
+        const container = document.getElementById("notificaciones-container");
+        const toast = document.createElement("div");
+        toast.className = "toast-custom";
+        toast.style.borderLeftColor = colorMap[tipo] || colorMap.info;
+        toast.setAttribute("role", "alert");
+        toast.innerHTML = `
+            <i class="bi ${iconMap[tipo] || iconMap.info}" style="color:${colorMap[tipo]};font-size:1.2rem;flex-shrink:0;margin-top:2px;" aria-hidden="true"></i>
+            <span>${mensaje}</span>
+        `;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transform = "translateX(24px)";
+            toast.style.transition = "opacity .3s ease, transform .3s ease";
+            setTimeout(() => toast.remove(), 320);
+        }, 4000);
+    };
+
+    /* ── Expose app show/hide helpers para script.js ───── */
+    window.mostrarApp = function () {
+        document.getElementById("login-screen").style.display = "none";
+        const app = document.getElementById("app");
+        app.style.display = "flex";
+        app.classList.add("visible");
+    };
+
+    window.ocultarApp = function () {
+        document.getElementById("app").style.display = "none";
+        document.getElementById("app").classList.remove("visible");
+        document.getElementById("login-screen").style.display = "flex";
+    };
+
+})();
+</script>
+
+<!-- Tu lógica de negocio (Supabase, secciones, etc.) -->
+<script type="module" src="./JS/script.js"></script>
+
+</body>
+</html>
